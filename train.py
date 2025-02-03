@@ -17,7 +17,7 @@ os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
 parser = argparse.ArgumentParser()
 
 # set base_options
-parser.add_argument("--image_dir", type=str, default='/home/DATASET', help="name of the dataset")
+parser.add_argument("--image_dir", type=str, default='./dataset', help="name of the dataset")
 parser.add_argument('--gpu', type=str, default='0', help='which gpu is used')
 parser.add_argument('--input_nc', type=int, default=1, help='# of input image channels: 3 for RGB and 1 for grayscale')
 parser.add_argument('--output_nc', type=int, default=1, help='# of output image channels: 3 for RGB and 1 for grayscale')
@@ -83,8 +83,8 @@ torch.cuda.manual_seed(opt.seed)
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = True
 
-headneck_train_set = DatasetFromFolder_train(opt, region='Headandneck')
-headneck_train_dataloader = DataLoader(dataset=headneck_train_set, num_workers=opt.num_threads,batch_size=opt.batch_size, shuffle=True)
+brain_train_set = DatasetFromFolder_train(opt, region='Brain')
+brain_train_dataloader = DataLoader(dataset=brain_train_set, num_workers=opt.num_threads,batch_size=opt.batch_size, shuffle=True)
 all_train_set = DatasetFromFolder_train(opt, region='All')
 all_train_dataloader = DataLoader(dataset=all_train_set, num_workers=opt.num_threads, batch_size=opt.batch_size, shuffle=True)
 
@@ -110,7 +110,7 @@ for epoch in range(opt.epoch_count, opt.max_epochs + 1):  # outer loop for diffe
     iter_num = 0
 
     if epoch <= 50:
-        train_dataloader = headneck_train_dataloader
+        train_dataloader = brain_train_dataloader
     else:
         train_dataloader = all_train_dataloader
 
@@ -160,15 +160,15 @@ for epoch in range(opt.epoch_count, opt.max_epochs + 1):  # outer loop for diffe
     epoch_val_MAE = []
     epoch_val_SSIM = []
     epoch_val_PSNR = []
-    head_neck_val_MAE = []
-    head_neck_val_SSIM = []
-    head_neck_val_PSNR = []
-    abdominal_val_MAE = []
-    abdominal_val_SSIM = []
-    abdominal_val_PSNR = []
+    brain_val_MAE = []
+    brain_val_SSIM = []
+    brain_val_PSNR = []
+    pelvis_val_MAE = []
+    pelvis_val_SSIM = []
+    pelvis_val_PSNR = []
 
     if epoch <= 50:
-        val_txt = os.path.join(opt.code_dir, 'data', 'headneck_val.txt')
+        val_txt = os.path.join(opt.code_dir, 'data', 'brain_val.txt')
     else:
         val_txt = os.path.join(opt.code_dir, 'data', 'all_val.txt')
 
@@ -196,19 +196,19 @@ for epoch in range(opt.epoch_count, opt.max_epochs + 1):  # outer loop for diffe
     if Val_run:
         with torch.no_grad():
             for sub_index, sub in enumerate(image_filenames):
-                if 'Abdomen' in sub:
+                if 'Pelvis' in sub:
                     MR, spacing, origin, direction = NiiDataRead(
-                        os.path.join(opt.image_dir, sub, 'MR.nii.gz'))
+                        os.path.join(opt.image_dir, sub, 'mr.nii.gz'))
                     CT, spacing1, origin1, direction1 = NiiDataRead(
-                        os.path.join(opt.image_dir, sub, 'CT.nii.gz'))
+                        os.path.join(opt.image_dir, sub, 'ct.nii.gz'))
                     MASK, spacing, origin, direction = NiiDataRead(
                         os.path.join(opt.image_dir, sub, 'mask.nii.gz'))
                     true_label = 1
                 else:
                     MR, spacing, origin, direction = NiiDataRead(
-                        os.path.join(opt.image_dir, sub, 'MR.nii.gz'))
+                        os.path.join(opt.image_dir, sub, 'mr.nii.gz'))
                     CT, spacing1, origin1, direction1 = NiiDataRead(
-                        os.path.join(opt.image_dir, sub, 'CT.nii.gz'))
+                        os.path.join(opt.image_dir, sub, 'ct.nii.gz'))
                     MASK, spacing, origin, direction = NiiDataRead(
                         os.path.join(opt.image_dir, sub, 'mask.nii.gz'))
                     true_label = 0
@@ -295,19 +295,19 @@ for epoch in range(opt.epoch_count, opt.max_epochs + 1):  # outer loop for diffe
                 epoch_val_SSIM.append(SSIM)
                 epoch_val_PSNR.append(PSNR)
 
-                if 'Abdomen' not in sub:
-                    head_neck_val_MAE.append(MAE)
-                    head_neck_val_PSNR.append(PSNR)
-                    head_neck_val_SSIM.append(SSIM)
-                    message = 'The head_neck MAE, SSIM, PSNR is %.3f,%.3f,%.3f, the total MAE, SSIM, PSNR is %.3f,%.3f,%.3f' % (
-                        np.mean(head_neck_val_MAE),np.mean(head_neck_val_SSIM),np.mean(head_neck_val_PSNR),
+                if 'Pelvis' not in sub:
+                    brain_val_MAE.append(MAE)
+                    brain_val_PSNR.append(PSNR)
+                    brain_val_SSIM.append(SSIM)
+                    message = 'The Brain MAE, SSIM, PSNR is %.3f,%.3f,%.3f, the total MAE, SSIM, PSNR is %.3f,%.3f,%.3f' % (
+                        np.mean(brain_val_MAE),np.mean(brain_val_SSIM),np.mean(brain_val_PSNR),
                         np.mean(epoch_val_MAE),np.mean(epoch_val_SSIM),np.mean(epoch_val_PSNR))
                 else:
-                    abdominal_val_MAE.append(MAE)
-                    abdominal_val_PSNR.append(PSNR)
-                    abdominal_val_SSIM.append(SSIM)
-                    message = 'The abdominal, SSIM, PSNR is %.3f,%.3f,%.3f, the total MAE, SSIM, PSNR is %.3f,%.3f,%.3f' % (
-                    np.mean(abdominal_val_MAE), np.mean(abdominal_val_SSIM), np.mean(abdominal_val_PSNR),
+                    pelvis_val_MAE.append(MAE)
+                    pelvis_val_PSNR.append(PSNR)
+                    pelvis_val_SSIM.append(SSIM)
+                    message = 'The Pelvis, SSIM, PSNR is %.3f,%.3f,%.3f, the total MAE, SSIM, PSNR is %.3f,%.3f,%.3f' % (
+                    np.mean(pelvis_val_MAE), np.mean(pelvis_val_SSIM), np.mean(pelvis_val_PSNR),
                     np.mean(epoch_val_MAE), np.mean(epoch_val_SSIM), np.mean(epoch_val_PSNR))
 
                 print(message)

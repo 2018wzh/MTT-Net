@@ -78,8 +78,8 @@ class DatasetFromFolder_train(data.Dataset):
         self.image_dir = opt.image_dir
         self.Max_CT = opt.Max_CT
 
-        if region=='Headandneck':
-            self.train_txt = os.path.join(opt.code_dir, 'data', 'headneck_train.txt')
+        if region=='Brain':
+            self.train_txt = os.path.join(opt.code_dir, 'data', 'brain_train.txt')
         elif region=='All':
             self.train_txt = os.path.join(opt.code_dir, 'data', 'all_train.txt')
         with open(self.train_txt, 'r') as f:
@@ -94,20 +94,20 @@ class DatasetFromFolder_train(data.Dataset):
         self.ran_num = 1
         patient_name = self.image_filenames[this_index]
 
-        if 'Abdomen' in patient_name:
+        if 'Pelvis' in patient_name:
             a_mri1, spacing, origin, direction = NiiDataRead(
-                join(self.image_dir, patient_name, 'MR.nii.gz'))
+                join(self.image_dir, patient_name, 'mr.nii.gz'))
             b_ct, spacing1, origin1, direction1 = NiiDataRead(
-                join(self.image_dir, patient_name, 'CT.nii.gz'))
+                join(self.image_dir, patient_name, 'ct.nii.gz'))
             b_mask, spacing, origin, direction = NiiDataRead(
                 join(self.image_dir, patient_name, 'mask.nii.gz'))
             ct_max = self.Max_CT
             label = 1
         else:
             a_mri1, spacing, origin, direction = NiiDataRead(
-                join(self.image_dir, patient_name, 'MR.nii.gz'))
+                join(self.image_dir, patient_name, 'mr.nii.gz'))
             b_ct, spacing1, origin1, direction1 = NiiDataRead(
-                join(self.image_dir, patient_name, 'CT.nii.gz'))
+                join(self.image_dir, patient_name, 'ct.nii.gz'))
             b_mask, spacing, origin, direction = NiiDataRead(
                 join(self.image_dir, patient_name, 'mask.nii.gz'))
             ct_max = self.Max_CT

@@ -1,0 +1,5 @@
+.conda/*
+dataset/*
+**/*.pth
+train_model/*
+**/__pycache__

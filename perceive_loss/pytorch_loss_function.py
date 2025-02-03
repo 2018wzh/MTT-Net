@@ -74,7 +74,7 @@ class VGGLoss_3D(nn.Module):
 
 
 class ResNet18_3D(torch.nn.Module):
-    def __init__(self, pretrained_path='/home/zyw/.cache/torch/checkpoints/resnet_18_23dataset.pth', rank=0,
+    def __init__(self, pretrained_path='./perceive_loss/resnet_18_23dataset.pth', rank=0,
                  requires_grad=False):
         super(ResNet18_3D, self).__init__()
         ResNet18 = resnet18(shortcut_type='A', no_cuda=False).to(rank)
