@@ -3,3 +3,4 @@ dataset/*
 **/*.pth
 train_model/*
 **/__pycache__
+.vscode/*
