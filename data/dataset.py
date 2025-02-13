@@ -27,7 +27,7 @@ def randomcrop_Npatch(crop_size, crop_Npatch, mri1, ct, ct_mask):
     patch_index = random.sample(range(0, non_zero_num), crop_Npatch)
     patch_mri1 = np.zeros([crop_Npatch, this_frame[0], this_frame[1], this_frame[2]]).astype(np.float32)
     patch_ct = np.zeros([crop_Npatch, this_frame[0], this_frame[1], this_frame[2]]).astype(np.float32)
-    patch_mask = np.zeros([crop_Npatch, this_frame[0], this_frame[1], this_frame[2]]).astype(np.int)
+    patch_mask = np.zeros([crop_Npatch, this_frame[0], this_frame[1], this_frame[2]]).astype(int)
 
     for idx in range(crop_Npatch):
         z_med = non_zero_z[patch_index[idx]]
