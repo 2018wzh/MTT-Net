@@ -16,7 +16,6 @@ from skimage import transform
 import os
 import torchvision.transforms as transforms
 from util.util import *
-
 def randomcrop_Npatch(crop_size, crop_Npatch, mri1, ct, ct_mask):
     this_frame = crop_size
     img = mri1
@@ -37,41 +36,44 @@ def randomcrop_Npatch(crop_size, crop_Npatch, mri1, ct, ct_mask):
         x_frame_size = int(this_frame[1] / 2)
         y_frame_size = int(this_frame[2] / 2)
 
-        if z_med < z_frame_size:
-            z_this_min = 0
-            z_this_max = z_frame_size * 2
-        elif z_med + z_frame_size > img.shape[0]:
-            z_this_max = img.shape[0]
-            z_this_min = z_this_max - this_frame[0]
-        else:
-            z_this_min = z_med - z_frame_size
-            z_this_max = z_med + z_frame_size
+        # 计算裁剪区域的边界
+        z_this_min = max(0, z_med - z_frame_size)
+        z_this_max = min(img.shape[0], z_med + z_frame_size)
+        x_this_min = max(0, x_med - x_frame_size)
+        x_this_max = min(img.shape[1], x_med + x_frame_size)
+        y_this_min = max(0, y_med - y_frame_size)
+        y_this_max = min(img.shape[2], y_med + y_frame_size)
 
-        if x_med < x_frame_size:
-            x_this_min = 0
-            x_this_max = x_frame_size * 2
-        elif x_med + x_frame_size > img.shape[1]:
-            x_this_max = img.shape[1]
-            x_this_min = x_this_max - this_frame[1]
-        else:
-            x_this_min = x_med - x_frame_size
-            x_this_max = x_med + x_frame_size
+        # 裁剪区域
+        mri1_crop = mri1[z_this_min:z_this_max, x_this_min:x_this_max, y_this_min:y_this_max]
+        ct_crop = ct[z_this_min:z_this_max, x_this_min:x_this_max, y_this_min:y_this_max]
+        ct_mask_crop = ct_mask[z_this_min:z_this_max, x_this_min:x_this_max, y_this_min:y_this_max]
 
-        if y_med < y_frame_size:
-            y_this_min = 0
-            y_this_max = y_frame_size * 2
-        elif y_med + y_frame_size > img.shape[2]:
-            y_this_max = img.shape[2]
-            y_this_min = y_this_max - this_frame[2]
-        else:
-            y_this_min = y_med - y_frame_size
-            y_this_max = y_med + y_frame_size
+        # 计算需要填充的尺寸
+        pad_width = []
+        for dim in range(3):
+            current_size = mri1_crop.shape[dim]
+            target_size = this_frame[dim]
+            pad_total = max(target_size - current_size, 0)
+            pad_before = pad_total // 2
+            pad_after = pad_total - pad_before
+            pad_width.append((pad_before, pad_after))
 
-        patch_mri1[idx, :, :, :] = mri1[z_this_min: z_this_max, x_this_min: x_this_max, y_this_min: y_this_max]
-        patch_ct[idx, :, :, :] = ct[z_this_min: z_this_max, x_this_min: x_this_max, y_this_min: y_this_max]
-        patch_mask[idx, :, :, :] = ct_mask[z_this_min: z_this_max, x_this_min: x_this_max, y_this_min: y_this_max]
+        # 进行零填充
+        mri1_padded = np.pad(mri1_crop, pad_width, mode='constant', constant_values=0)
+        ct_padded = np.pad(ct_crop, pad_width, mode='constant', constant_values=0)
+        ct_mask_padded = np.pad(ct_mask_crop, pad_width, mode='constant', constant_values=0)
 
-    return np.ascontiguousarray(patch_mri1), np.ascontiguousarray(patch_ct), np.ascontiguousarray(patch_mask)
+        # 确保填充后的尺寸正确
+        patch_mri1[idx] = mri1_padded
+        patch_ct[idx] = ct_padded
+        patch_mask[idx] = ct_mask_padded
+
+    return (
+        np.ascontiguousarray(patch_mri1),
+        np.ascontiguousarray(patch_ct),
+        np.ascontiguousarray(patch_mask)
+    )
 
 class DatasetFromFolder_train(data.Dataset):
     def __init__(self, opt, region):
