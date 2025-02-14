@@ -323,10 +323,10 @@ for epoch in range(opt.epoch_count, opt.max_epochs + 1):  # outer loop for diffe
             save_networks(opt, 'best_MAE', model, epoch)
 
 
-        print('saving the model')
-        save_networks(opt, 'latest', model, epoch)
+    print('saving the model')
+    save_networks(opt, 'latest', model, epoch)
 
-        print('End of epoch %d / %d \t Time Taken: %d sec' % (epoch, opt.max_epochs, time.time() - epoch_start_time))
+    print('End of epoch %d / %d \t Time Taken: %d sec' % (epoch, opt.max_epochs, time.time() - epoch_start_time))
 
 train_writer.close()
 
