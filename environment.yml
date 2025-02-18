@@ -8,7 +8,7 @@ dependencies:
   - matplotlib
   - ml-collections
   - numpy
-  - panda
+  - pandas
   - pip
   - pydicom
   - python=3.10
